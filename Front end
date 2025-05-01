@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager Web App</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #input-section {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        #new-task {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+        }
+        #add-btn {
+            padding: 10px 15px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        #add-btn:hover {
+            background-color: #4cae4c;
+        }
+        #task-list {
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .task-item.completed {
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+            color: #3c763d;
+        }
+        .task-item span {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .task-item.completed span {
+            text-decoration: line-through;
+        }
+        .actions button {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .actions button.complete-btn {
+            background-color: #5bc0de;
+        }
+        .actions button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Manager</h1>
+
+        <div id="input-section">
+            <input type="text" id="new-task" placeholder="Add new task">
+            <button id="add-btn">Add Task</button>
+        </div>
+
+        <ul id="task-list">
+            </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('new-task');
+            const addButton = document.getElementById('add-btn');
+            const taskList = document.getElementById('task-list');
+
+            let tasks = loadTasks();
+            renderTasks();
+
+            addButton.addEventListener('click', addTask);
+            taskInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    addTask();
+                }
+            });
+
+            function loadTasks() {
+                const storedTasks = localStorage.getItem('tasks');
+                return storedTasks ? JSON.parse(storedTasks) : [];
+            }
+
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('task-item');
+                    if (task.completed) {
+                        listItem.classList.add('completed');
+                    }
+
+                    const taskSpan = document.createElement('span');
+                    taskSpan.textContent = task.text;
+                    listItem.appendChild(taskSpan);
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.classList.add('actions');
+
+                    const completeButton = document.createElement('button');
+                    completeButton.textContent = task.completed ? 'Undo' : 'Complete';
+                    completeButton.classList.add('complete-btn');
+                    completeButton.addEventListener('click', () => toggleComplete(index));
+                    actionsDiv.appendChild(completeButton);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => deleteTask(index));
+                    actionsDiv.appendChild(deleteButton);
+
+                    listItem.appendChild(actionsDiv);
+                    taskList.appendChild(listItem);
+                });
+            }
+
+            function addTask() {
+                const newTaskText = taskInput.value.trim();
+                if (newTaskText !== '') {
+                    tasks.push({ text: newTaskText, completed: false });
+                    saveTasks();
+                    renderTasks();
+                    taskInput.value = '';
+                }
+            }
+
+            function toggleComplete(index) {
+                tasks[index].completed = !tasks[index].completed;
+                saveTasks();
+                renderTasks();
+            }
+
+            function deleteTask(index) {
+                tasks.splice(index, 1);
+                saveTasks();
+                renderTasks();
+            }
+        });
+    </script>
+</body>
+</html>
